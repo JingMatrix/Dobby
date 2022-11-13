@@ -88,7 +88,14 @@ const tinystl::vector<MemRegion> &ProcessRuntimeUtility::GetProcessMemoryLayout(
     MemRegion region = MemRegion(region_start, region_end - region_start, permission);
     regions.push_back(region);
   }
-  std::sort(regions.begin(), regions.end(), memory_region_comparator);
+  std::qsort(&regions[0], regions.size(), sizeof(MemRegion),
+             +[](const void* a, const void* b) -> int {
+                 const auto *i = static_cast<const MemRegion *>(a);
+                 const auto *j = static_cast<const MemRegion *>(b);
+                 if ((addr_t)i->start < (addr_t)j->start) return -1;
+                 if ((addr_t)i->start > (addr_t)j->start) return 1;
+                 return 0;
+             });
 
   fclose(fp);
   return regions;
